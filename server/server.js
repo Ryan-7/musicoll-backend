@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
+const _ = require('lodash');
 
 
 // Server
@@ -23,34 +24,36 @@ app.options('*', cors());
 // Hit this route, we get a request object with a body that we can use stuff with. 
 
 app.post('/api/projects', (req, res) => {
-
     // Create new object based on Project model. 
-
     let newProject = new Project({
-
     });
-
     newProject.save(); // Save the object to Database 
-
     res.status(200).send('Route Worked')
-
 })
 
 // New Project 
+// Creates empty Project object with an Id we can use to route to on the client side and modify from there.
 app.get('/api/projects/new', (req, res) => {
         let newProject = new Project({
         });
-    
-        newProject.save();
-    
+        newProject.save();  
         res.status(200).send(newProject._id);
-    
-    })
+})
 
-// click new project
-// get back this id
-// then route to that id
-// and the app will function as normal, using the param to fetch the data 
+// Return the names and Id of each project so we can link on the client side.
+// No need to return all project data, since that would be a huge payload, 'pick' is a very useful method here.
+app.get('/api/projects/list', (req, res) => {
+    Project.find({}).then((results) => {
+        newArray = [];
+        _.forEach(results, (item) => {
+            newArray.push(
+                _.pick(item, ['_id', 'name'])
+            )
+        })
+        res.status(200).send(newArray);
+    })
+})
+
     
 
 
