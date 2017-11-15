@@ -4,13 +4,16 @@ const Project = mongoose.model('Project',  {
 
     name: {
         type: String,
-        trim: true
+        trim: true,
+        default: 'Untitled Project'
     },
     lyrics: {
-        type: String
+        type: String,
+        default: '\nA spot to write lyrics\nStore ideas and whatnot\nDo not go down that road'
     },
     notes: {
-        type: String
+        type: String,
+        default: 'Notes, ideas, inspirations'
     },
     audio: [{
         file: String,

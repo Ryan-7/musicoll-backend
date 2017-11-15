@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const mongoose = require('./db/mongoose');
+const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
 
 
@@ -26,7 +27,7 @@ app.post('/api/projects', (req, res) => {
     // Create new object based on Project model. 
 
     let newProject = new Project({
-        name: "Test!"
+
     });
 
     newProject.save(); // Save the object to Database 
@@ -34,4 +35,77 @@ app.post('/api/projects', (req, res) => {
     res.status(200).send('Route Worked')
 
 })
+
+// New Project 
+app.get('/api/projects/new', (req, res) => {
+        let newProject = new Project({
+        });
+    
+        newProject.save();
+    
+        res.status(200).send(newProject._id);
+    
+    })
+
+// click new project
+// get back this id
+// then route to that id
+// and the app will function as normal, using the param to fetch the data 
+    
+
+
+// Seed Data
+
+const seeds = [
+    {
+        _id: new ObjectID(),
+        name: "Awesome Project",
+        lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+        notes: 'This song is written in the key of C#',
+        audio: [
+            {
+                file: "musicFile.wav",
+                title: 'Guitar Rhythm',
+                description: 'Backing rhythm without lead or melody.',
+                date: new Date()
+            }
+        ]
+    },
+    {
+        _id: new ObjectID(),
+        name: "Project of the Century",
+        lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+        notes: 'This song is written in the key of C#',
+        audio: [
+            {
+                file: "musicFile.wav",
+                title: 'Guitar Rhythm',
+                description: 'Backing rhythm without lead or melody.',
+                date: new Date()
+            }
+        ]
+    },
+    {
+        _id: new ObjectID(),
+        name: "Great Idea for Us",
+        lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+        notes: 'This song is written in the key of C#',
+        audio: [
+            {
+                file: "musicFile.wav",
+                title: 'Guitar Rhythm',
+                description: 'Backing rhythm without lead or melody.',
+                date: new Date()
+            }
+        ]
+    }
+]
+
+// Seed the DB with mock data.
+
+Project.remove({}).then(() => {
+    return Project.insertMany(seeds);
+}).then(() => {
+});
+
 
