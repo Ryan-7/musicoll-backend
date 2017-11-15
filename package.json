@@ -1,0 +1,40 @@
+{
+  "name": "musicoll-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ryan-7/musicoll-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ryan-7/musicoll-backend/issues"
+  },
+  "homepage": "https://github.com/Ryan-7/musicoll-backend#readme",
+  "dependencies": {
+    "bcryptjs": "^2.3.0",
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.15.2",
+    "crypto-js": "^3.1.9-1",
+    "express": "^4.14.0",
+    "jsonwebtoken": "^7.1.9",
+    "lodash": "^4.17.4",
+    "mongodb": "^2.2.5",
+    "mongoose": "^4.5.9",
+    "validator": "^9.0.0"
+  },
+  "devDependencies": {
+    "cors": "^2.8.4",
+    "expect": "^1.20.2",
+    "fetch": "^1.1.0",
+    "mocha": "^3.0.2",
+    "nodemon": "^1.10.2",
+    "supertest": "^2.0.0"
+  }
+}
+
