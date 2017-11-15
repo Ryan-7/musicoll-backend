@@ -21,23 +21,13 @@ app.use(bodyParser.json());
 app.options('*', cors());
 
 
-// Hit this route, we get a request object with a body that we can use stuff with. 
-
-app.post('/api/projects', (req, res) => {
-    // Create new object based on Project model. 
+// New Project 
+// Creates empty Project object with an Id we can use to route to on the client side and modify from the app.
+app.get('/api/projects/new', (req, res) => {
     let newProject = new Project({
     });
-    newProject.save(); // Save the object to Database 
-    res.status(200).send('Route Worked')
-})
-
-// New Project 
-// Creates empty Project object with an Id we can use to route to on the client side and modify from there.
-app.get('/api/projects/new', (req, res) => {
-        let newProject = new Project({
-        });
-        newProject.save();  
-        res.status(200).send(newProject._id);
+    newProject.save();  
+    res.status(200).send(newProject._id);
 })
 
 // Return the names and Id of each project so we can link on the client side.
@@ -54,6 +44,13 @@ app.get('/api/projects/list', (req, res) => {
     })
 })
 
+// Get project by Id
+app.get('/api/projects/:id', (req, res) => {
+    let id = req.params.id;
+    Project.findOne({_id: id}).then((result) => {
+        res.status(200).send(result);
+    })
+})
     
 
 
