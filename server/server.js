@@ -32,6 +32,7 @@ app.get('/api/projects/new', (req, res) => {
 
 // Return the names and Id of each project so we can link on the client side.
 // No need to return all project data, since that would be a huge payload, 'pick' is a very useful method here.
+// This won't be necessary if I just serve links to the wav files to the front end.
 app.get('/api/projects/list', (req, res) => {
     Project.find({}).then((results) => {
         newArray = [];
@@ -52,6 +53,15 @@ app.get('/api/projects/:id', (req, res) => {
     })
 })
     
+
+// Delete Project by Id
+app.delete('/api/projects/:id', (req, res) => {
+    let id = req.params.id;
+    Project.findOneAndRemove({_id: id}).then((result) => {
+        res.send(result);
+    })
+})
+
 
 
 // Seed Data
