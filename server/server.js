@@ -62,6 +62,17 @@ app.delete('/api/projects/:id', (req, res) => {
     })
 })
 
+// Edit Items 
+
+
+app.patch('/api/projects/:id', (req, res) => {
+    let id = req.params.id;
+    let body = _.pick(req.body, ['name', 'lyrics', 'notes']);
+    Project.findOneAndUpdate({ _id: id}, {$set: {name: body.name, lyrics: body.lyrics, notes: body.notes}}, {new: true})
+    .then((doc) => {
+        res.status(200).send(doc);
+    })
+})
 
 
 // Seed Data
