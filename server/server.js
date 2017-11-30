@@ -82,7 +82,7 @@ const seeds = [
         _id: new ObjectID(),
         name: "Awesome Project",
         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
-        notes: 'This song is written in the key of C#',
+        notes: '\nThis song is written in the key of C#',
         audio: [
             {
                 file: "musicFile.wav",
@@ -96,7 +96,7 @@ const seeds = [
         _id: new ObjectID(),
         name: "Project of the Century",
         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
-        notes: 'This song is written in the key of C#',
+        notes: '\nThis song is written in the key of C#',
         audio: [
             {
                 file: "musicFile.wav",
@@ -110,7 +110,7 @@ const seeds = [
         _id: new ObjectID(),
         name: "Great Idea for Us",
         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
-        notes: 'This song is written in the key of C#',
+        notes: '\nThis song is written in the key of C#',
         audio: [
             {
                 file: "musicFile.wav",

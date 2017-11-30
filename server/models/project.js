@@ -13,7 +13,7 @@ const Project = mongoose.model('Project',  {
     },
     notes: {
         type: String,
-        default: 'Notes, ideas, inspirations'
+        default: '\nNotes, ideas, inspirations'
     },
     audio: [{
         file: String,
