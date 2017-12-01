@@ -7,11 +7,12 @@ const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
 const _ = require('lodash');
 
+const port = process.env.port || 3000; // Stores all environment variables in key value pairs, we want port
 
 // Server
 const app =  express();
-app.listen(3000, () => {
-    console.log('App started on Port 3000')
+app.listen(port, () => {
+    console.log('App started on Port ' + port)
 });
 
 // Middleware for parsing incoming body for JSON. 
@@ -19,6 +20,14 @@ app.use(bodyParser.json());
 
 // Allow cross origin request for local dev.
 app.options('*', cors());
+
+
+//Test
+
+app.get('/', (req, res) => {
+    res.status(200).send("Hello");
+})
+
 
 
 // New Project 
