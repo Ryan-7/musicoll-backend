@@ -22,6 +22,14 @@ app.use(bodyParser.json());
 app.options('*', cors());
 
 
+//Test
+
+app.get('/', (req, res) => {
+    res.status(200).send("Hello");
+})
+
+
+
 // New Project 
 // Creates empty Project object with an Id we can use to route to on the client side and modify from the app.
 app.get('/api/projects/new', (req, res) => {
