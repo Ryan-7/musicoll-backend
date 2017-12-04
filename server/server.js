@@ -83,8 +83,6 @@ app.delete('/api/projects/:id', (req, res) => {
 })
 
 // Edit Items 
-
-
 app.patch('/api/projects/:id', (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['name', 'lyrics', 'notes']);
@@ -93,6 +91,17 @@ app.patch('/api/projects/:id', (req, res) => {
         res.status(200).send(doc);
     })
 })
+
+// Add audio to project 
+app.post('/api/projects/audio/:id', (req, res) => {
+    let id = req.params.id;
+    // Convert Blob into .ogg 
+    // Save blob to S3, get URL 
+    // Search for project by Id
+    // Append to Audio array with name, description and url to .ogg to DataBase
+    // Reload audio track listings on client side 
+    res.send(id);
+});
 
 
 // Seed Data
