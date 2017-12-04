@@ -9,11 +9,22 @@ const _ = require('lodash');
 
 const port = process.env.port || 3000; // Stores all environment variables in key value pairs, we want port
 
+
+
 // Server
 const app =  express();
 app.listen(port, () => {
     console.log('App started on Port ' + port)
 });
+
+// CORS
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 
 // Middleware for parsing incoming body for JSON. 
 app.use(bodyParser.json());
