@@ -11,7 +11,8 @@ const _ = require('lodash');
 
 const port = process.env.port || 3000; // Stores all environment variables in key value pairs, we want port
 
-
+var multer  = require('multer')
+var upload = multer({ dest: './' })
 
 // Server
 const app =  express();
@@ -28,7 +29,11 @@ app.use(function(req, res, next) {
 
 
 // Middleware for parsing incoming body for JSON. 
-app.use(bodyParser.json());
+ // app.use(bodyParser.json());
+
+ app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
 //Test
 
@@ -90,15 +95,17 @@ app.patch('/api/projects/:id', (req, res) => {
 })
 
 // Add audio to project 
-app.post('/api/projects/audio/:id', (req, res) => {
+app.post('/api/projects/audio/:id', upload.single('upload'), (req, res) => {
     let id = req.params.id;
     console.log(req);
     console.log(id);
-    console.log(req.data)
-    let whatever;
-    req.on('data', (data) => {
 
-            console.log(data);
+        console.log(req.file);
+    // req.on('data', (data) => {
+    
+    // console.log(data.toString())
+
+       //     console.log(data.toString());
      //   fs.writeFileSync('anoterone.ogg', whatever);
         
 
@@ -110,8 +117,8 @@ app.post('/api/projects/audio/:id', (req, res) => {
         //     }
         // });
       
-        res.send(data);
-      });
+    //    res.send(data);
+    //   });
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
     // Search for project by Id
