@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
+const fs = require('fs');
+
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
@@ -27,8 +29,6 @@ app.use(function(req, res, next) {
 
 // Middleware for parsing incoming body for JSON. 
 app.use(bodyParser.json());
-
-
 
 //Test
 
@@ -92,12 +92,32 @@ app.patch('/api/projects/:id', (req, res) => {
 // Add audio to project 
 app.post('/api/projects/audio/:id', (req, res) => {
     let id = req.params.id;
+    console.log(req);
+    console.log(id);
+    console.log(req.data)
+    let whatever;
+    req.on('data', (data) => {
+
+            console.log(data);
+        fs.writeFileSync('anoterone.ogg', whatever);
+        
+
+        // fs.writeFile("test.wav", data, (err) => {
+        //     if (err) {
+        //         console.log(err)
+        //     } else {
+        //         console.log('sucess');
+        //     }
+        // });
+      
+     //   res.send(data);
+      });
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
     // Search for project by Id
     // Append to Audio array with name, description and url to .ogg to DataBase
     // Reload audio track listings on client side 
-    res.send(id);
+
 });
 
 
