@@ -99,7 +99,7 @@ app.post('/api/projects/audio/:id', (req, res) => {
     req.on('data', (data) => {
 
             console.log(data);
-        fs.writeFileSync('anoterone.ogg', whatever);
+     //   fs.writeFileSync('anoterone.ogg', whatever);
         
 
         // fs.writeFile("test.wav", data, (err) => {
@@ -110,7 +110,7 @@ app.post('/api/projects/audio/:id', (req, res) => {
         //     }
         // });
       
-     //   res.send(data);
+        res.send(data);
       });
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
