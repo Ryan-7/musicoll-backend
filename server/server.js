@@ -18,7 +18,6 @@ app.listen(port, () => {
 });
 
 // CORS
-
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -29,8 +28,6 @@ app.use(function(req, res, next) {
 // Middleware for parsing incoming body for JSON. 
 app.use(bodyParser.json());
 
-// Allow cross origin request for local dev.
-app.options('*', cors());
 
 
 //Test
