@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
 const fs = require('fs');
+
+var multer  = require('multer')
+var upload = multer({ dest: './' })
 
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
@@ -11,8 +13,7 @@ const _ = require('lodash');
 
 const port = process.env.port || 3000; // Stores all environment variables in key value pairs, we want port
 
-var multer  = require('multer')
-var upload = multer({ dest: './' })
+
 
 // Server
 const app =  express();
@@ -31,9 +32,6 @@ app.use(function(req, res, next) {
 // Middleware for parsing incoming body for JSON. 
  app.use(bodyParser.json());
 
-//  app.use(bodyParser.urlencoded({
-//     extended: true
-// }));
 
 //Test
 
@@ -95,35 +93,11 @@ app.patch('/api/projects/:id', (req, res) => {
 })
 
 // Add audio to project 
-app.post('/api/projects/audio/:id', upload.single('upload'), (req, res) => {
+app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     let id = req.params.id;
-    // console.log(req);
-    // console.log(id);
 
-        console.log(req.file);
+    console.log(req.file);
 
-     //   res.send(req.file);
-
-    //    fs.writeFileSync('another-test', req.file);
-
-    // req.on('data', (data) => {
-    
-    // console.log(data.toString())
-
-       //     console.log(data.toString());
-     //   fs.writeFileSync('anoterone.ogg', whatever);
-        
-
-        // fs.writeFile("test.wav", data, (err) => {
-        //     if (err) {
-        //         console.log(err)
-        //     } else {
-        //         console.log('sucess');
-        //     }
-        // });
-      
-    //    res.send(data);
-    //   });
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
     // Search for project by Id
