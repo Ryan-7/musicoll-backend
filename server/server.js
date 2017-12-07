@@ -29,11 +29,11 @@ app.use(function(req, res, next) {
 
 
 // Middleware for parsing incoming body for JSON. 
- // app.use(bodyParser.json());
+ app.use(bodyParser.json());
 
- app.use(bodyParser.urlencoded({
-    extended: true
-}));
+//  app.use(bodyParser.urlencoded({
+//     extended: true
+// }));
 
 //Test
 
@@ -97,10 +97,15 @@ app.patch('/api/projects/:id', (req, res) => {
 // Add audio to project 
 app.post('/api/projects/audio/:id', upload.single('upload'), (req, res) => {
     let id = req.params.id;
-    console.log(req);
-    console.log(id);
+    // console.log(req);
+    // console.log(id);
 
         console.log(req.file);
+
+     //   res.send(req.file);
+
+    //    fs.writeFileSync('another-test', req.file);
+
     // req.on('data', (data) => {
     
     // console.log(data.toString())
