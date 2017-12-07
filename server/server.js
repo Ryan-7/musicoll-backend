@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
-
+const multer  = require('multer');
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
@@ -89,7 +89,7 @@ app.patch('/api/projects/:id', (req, res) => {
     })
 })
 
-var multer  = require('multer');
+
 
 
 // Call the function so we can append a file extension. 
@@ -102,23 +102,22 @@ var storage = multer.diskStorage({
     }
   });
 
-  var upload = multer({ storage: storage });
+
+var upload = multer({ storage: storage });
 
 
   
 // Add audio to project 
 app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     let id = req.params.id;
-
+    console.log(id);
     console.log(req.file);
 
-    console.log("req body:");
-    console.log(req.body);
-
+    // req.body gives us access to the JSON string on the FormData. 
     let trackInfo = JSON.parse(req.body.body)
     console.log(trackInfo);
     console.log(trackInfo.trackName);
-
+  
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
     // Search for project by Id
@@ -126,6 +125,26 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     // Reload audio track listings on client side 
 
 });
+
+// Add audio to project 
+// app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
+//     let id = req.params.id;
+//     console.log(id);
+//     console.log(req.file);
+
+//     // req.body gives us access to the JSON string on the FormData. 
+//     let trackInfo = JSON.parse(req.body.body)
+//     console.log(trackInfo);
+//     console.log(trackInfo.trackName);
+  
+//     // Convert Blob into .ogg 
+//     // Save blob to S3, get URL 
+//     // Search for project by Id
+//     // Append to Audio array with name, description and url to .ogg to DataBase
+//     // Reload audio track listings on client side 
+
+// });
+
 
 
 // Seed Data
