@@ -3,6 +3,10 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const multer  = require('multer');
+const multerS3 = require('multer-s3');
+const aws = require('aws-sdk');
+const awsconfig = require('../s3_config.json');
+
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
@@ -15,7 +19,7 @@ const port = process.env.port || 3000; // Stores all environment variables in ke
 // Server
 const app =  express();
 app.listen(port, () => {
-    console.log('App started on Port ' + port)
+    console.log('App started on Port ' + port);
 });
 
 // CORS
@@ -93,18 +97,34 @@ app.patch('/api/projects/:id', (req, res) => {
 
 
 // Call the function so we can append a file extension. 
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, '../temp-saves')
-    },
-    filename: function (req, file, cb) {
-      cb(null, Date.now() + '.ogg') //Appending .ogg for the audio.
-    }
-  });
+// var storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//       cb(null, '../temp-saves')
+//     },
+//     filename: function (req, file, cb) {
+//       cb(null, Date.now() + '.ogg') //Appending .ogg for the audio.
+//     }
+//   });
 
 
-var upload = multer({ storage: storage });
+// const upload = multer({ storage: storage });
 
+
+aws.config.update(awsconfig);
+
+const s3 = new aws.S3()
+
+
+const upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: 'musicollapp',
+        key: function (req, file, cb) {
+            console.log(file);
+            cb(null, file.originalname + '.ogg'); //use Date.now() for unique file keys
+        }
+    })
+});
 
   
 // Add audio to project 
@@ -117,6 +137,8 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     let trackInfo = JSON.parse(req.body.body)
     console.log(trackInfo);
     console.log(trackInfo.trackName);
+
+    
   
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
