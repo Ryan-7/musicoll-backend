@@ -3,9 +3,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
-var multer  = require('multer')
-var upload = multer({ dest: './' })
-
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
@@ -92,11 +89,35 @@ app.patch('/api/projects/:id', (req, res) => {
     })
 })
 
+var multer  = require('multer');
+
+
+// Call the function so we can append a file extension. 
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, '../temp-saves')
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + '.ogg') //Appending .ogg for the audio.
+    }
+  });
+
+  var upload = multer({ storage: storage });
+
+
+  
 // Add audio to project 
 app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     let id = req.params.id;
 
     console.log(req.file);
+
+    console.log("req body:");
+    console.log(req.body);
+
+    let trackInfo = JSON.parse(req.body.body)
+    console.log(trackInfo);
+    console.log(trackInfo.trackName);
 
     // Convert Blob into .ogg 
     // Save blob to S3, get URL 
