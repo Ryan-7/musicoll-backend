@@ -150,8 +150,8 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     }
 
     Project.findOneAndUpdate({_id: id}, {$push: {audio: audio}}, {new: true})
-    .then((res) => {
-        console.log(res);
+    .then((updatedProject) => {
+        res.send(updatedProject);
     }) 
     
 
