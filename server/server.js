@@ -140,11 +140,12 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     // req.body gives us access to the JSON string on the FormData. 
     let trackInfo = JSON.parse(req.body.body)
 
+    console.log(trackInfo);
 
     let audio = {
         file: req.file.location,
         title: trackInfo.trackName,
-        description: trackInfo.description,
+        description: trackInfo.trackDescription,
         date: new Date()
     }
 
