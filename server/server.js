@@ -114,14 +114,16 @@ aws.config.update(awsconfig);
 
 const s3 = new aws.S3()
 
+// TODO: Limit file size and file type on S3. 
 
 const upload = multer({
     storage: multerS3({
         s3: s3,
         bucket: 'musicollapp',
+        acl: 'public-read',
         key: function (req, file, cb) {
-            console.log(file);
-            cb(null, file.originalname + '.ogg'); //use Date.now() for unique file keys
+            let randomFileName = Math.random().toString(36).substring(7);
+            cb(null, randomFileName + '.ogg'); //use Date.now() for unique file keys
         }
     })
 });
@@ -130,13 +132,27 @@ const upload = multer({
 // Add audio to project 
 app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     let id = req.params.id;
-    console.log(id);
-    console.log(req.file);
+  //  console.log(id);
+    
+  console.log('done uploading')
+  console.log(req.file.location);
 
     // req.body gives us access to the JSON string on the FormData. 
     let trackInfo = JSON.parse(req.body.body)
-    console.log(trackInfo);
-    console.log(trackInfo.trackName);
+
+
+    let audio = {
+        file: req.file.location,
+        title: trackInfo.trackName,
+        description: trackInfo.description,
+        date: new Date()
+    }
+
+    Project.findOneAndUpdate({_id: id}, {$push: {audio: audio}}, {new: true})
+    .then((res) => {
+        console.log(res);
+    }) 
+    
 
     
   
@@ -174,14 +190,14 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
 const seeds = [
     {
         _id: new ObjectID(),
-        name: "Awesome Project",
+        name: "Sample Project",
         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
         notes: '\nThis song is written in the key of C#',
         audio: [
             {
-                file: "musicFile.wav",
-                title: 'Guitar Rhythm',
-                description: 'Backing rhythm without lead or melody.',
+                file: "https://s3.us-east-2.amazonaws.com/musicollapp/sample.ogg",
+                title: 'Catchy Acoustic Guitar Rhythm',
+                description: 'A song I came up with while making this app...Key of A major.',
                 date: new Date()
             }
         ]
