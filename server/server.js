@@ -120,10 +120,10 @@ const upload = multer({
     storage: multerS3({
         s3: s3,
         bucket: 'musicollapp',
-        acl: 'public-read',
+        acl: 'public-read-write',
         key: function (req, file, cb) {
             let randomFileName = Math.random().toString(36).substring(7);
-            cb(null, randomFileName + '.ogg'); //use Date.now() for unique file keys
+            cb(null, randomFileName + '.ogg'); 
         }
     })
 });
@@ -164,10 +164,48 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
 // On clientside, we have access to the audi object's _id's to delete from DB
 // Also have access to the object's key for deleting from S3
 
-app.delete('/api/projects/audio/:id', (req, res) => {
+app.patch('/api/projects/audio/:id', (req, res) => {
+    let id = req.params.id; 
+    let audioId = req.body.audioId;
+    let audioKey = req.body.audioKey;
+    console.log(audioKey)
+
+    // Delete from S3
+    // Then Delete from DB 
+
+    let deleteParams = {
+        Bucket: 'musicollapp',
+        Delete: {
+            Objects: [
+                {
+                    Key: audioKey
+                }
+            ]
+        }
+    }   
+
+
+    s3.deleteObjects(deleteParams, (error, response) => {
+        if(error) {
+            console.log(error);
+        } else {
+            console.log(response)
+            console.log('delete successful');
+            Project.findOneAndUpdate({_id: id}, {$pull: {audio: { _id: audioId}}}, {new: true}).then((updatedProject) => {
+                res.send(updatedProject);
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+    })
+
+    
+
+
     // Get ID and key from clientside 
     // Delete from S3 using key
     // If successful, delete from DB using object id. 
+    // Send back res... which is hopefully updated project...?
 })
 
 // let tempParams = {
@@ -175,7 +213,7 @@ app.delete('/api/projects/audio/:id', (req, res) => {
 //     Delete: {
 //         Objects: [
 //             {
-//                 Key: "sample.ogg"
+//                 Key: "o7q970xgk949dfe0zfr.ogg"
 //             }
 //         ]
 //     }
