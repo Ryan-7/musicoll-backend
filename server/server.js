@@ -135,6 +135,7 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
   //  console.log(id);
     
   console.log('done uploading')
+  console.log(req.file)
   console.log(req.file.location);
 
     // req.body gives us access to the JSON string on the FormData. 
@@ -146,6 +147,7 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
         file: req.file.location,
         title: trackInfo.trackName,
         description: trackInfo.trackDescription,
+        key: req.file.key,
         date: new Date()
     }
 
@@ -155,35 +157,38 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     }) 
     
 
-    
-  
-    // Convert Blob into .ogg 
-    // Save blob to S3, get URL 
-    // Search for project by Id
-    // Append to Audio array with name, description and url to .ogg to DataBase
-    // Reload audio track listings on client side 
 
 });
 
-// Add audio to project 
-// app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
-//     let id = req.params.id;
-//     console.log(id);
-//     console.log(req.file);
+// Delete audio file from project DB & S3
+// On clientside, we have access to the audi object's _id's to delete from DB
+// Also have access to the object's key for deleting from S3
 
-//     // req.body gives us access to the JSON string on the FormData. 
-//     let trackInfo = JSON.parse(req.body.body)
-//     console.log(trackInfo);
-//     console.log(trackInfo.trackName);
-  
-//     // Convert Blob into .ogg 
-//     // Save blob to S3, get URL 
-//     // Search for project by Id
-//     // Append to Audio array with name, description and url to .ogg to DataBase
-//     // Reload audio track listings on client side 
+app.delete('/api/projects/audio/:id', (req, res) => {
+    // Get ID and key from clientside 
+    // Delete from S3 using key
+    // If successful, delete from DB using object id. 
+})
 
-// });
+// let tempParams = {
+//     Bucket: 'musicollapp',
+//     Delete: {
+//         Objects: [
+//             {
+//                 Key: "sample.ogg"
+//             }
+//         ]
+//     }
+// }
 
+// s3.deleteObjects(tempParams, (err, res) => {
+//     if(err) {
+//         console.log(err);
+//     } else {
+//         console.log(res);
+//         console.log('successfully deleted');
+//     }
+// })
 
 
 // Seed Data
@@ -199,7 +204,8 @@ const seeds = [
                 file: "https://s3.us-east-2.amazonaws.com/musicollapp/sample.ogg",
                 title: 'Catchy Acoustic Guitar Rhythm',
                 description: 'A song I came up with while making this app...Key of A major.',
-                date: new Date()
+                date: new Date(),
+                key: "sample.ogg"
             }
         ]
     },
@@ -213,7 +219,8 @@ const seeds = [
                 file: "musicFile.wav",
                 title: 'Guitar Rhythm',
                 description: 'Backing rhythm without lead or melody.',
-                date: new Date()
+                date: new Date(),
+                key: "sample.ogg"
             }
         ]
     },
@@ -227,7 +234,8 @@ const seeds = [
                 file: "musicFile.wav",
                 title: 'Guitar Rhythm',
                 description: 'Backing rhythm without lead or melody.',
-                date: new Date()
+                date: new Date(),
+                key: "sample.ogg"
             }
         ]
     }
