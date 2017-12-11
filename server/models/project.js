@@ -19,7 +19,8 @@ const Project = mongoose.model('Project',  {
         file: String,
         title: String,
         description: String,
-        date: Date
+        date: Date,
+        key: String
     }],
     _creator: {
 

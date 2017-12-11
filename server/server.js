@@ -1,6 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const multer  = require('multer');
+const multerS3 = require('multer-s3');
+const aws = require('aws-sdk');
+const awsconfig = require('../s3_config.json');
 
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
@@ -14,11 +19,10 @@ const port = process.env.port || 3000; // Stores all environment variables in ke
 // Server
 const app =  express();
 app.listen(port, () => {
-    console.log('App started on Port ' + port)
+    console.log('App started on Port ' + port);
 });
 
 // CORS
-
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -27,10 +31,7 @@ app.use(function(req, res, next) {
 
 
 // Middleware for parsing incoming body for JSON. 
-app.use(bodyParser.json());
-
-// Allow cross origin request for local dev.
-app.options('*', cors());
+ app.use(bodyParser.json());
 
 
 //Test
@@ -92,16 +93,140 @@ app.patch('/api/projects/:id', (req, res) => {
     })
 })
 
-// Add audio to project 
-app.post('/api/projects/audio/:id', (req, res) => {
-    let id = req.params.id;
-    // Convert Blob into .ogg 
-    // Save blob to S3, get URL 
-    // Search for project by Id
-    // Append to Audio array with name, description and url to .ogg to DataBase
-    // Reload audio track listings on client side 
-    res.send(id);
+
+
+
+// Call the function so we can append a file extension. 
+// var storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//       cb(null, '../temp-saves')
+//     },
+//     filename: function (req, file, cb) {
+//       cb(null, Date.now() + '.ogg') //Appending .ogg for the audio.
+//     }
+//   });
+
+
+// const upload = multer({ storage: storage });
+
+
+aws.config.update(awsconfig);
+
+const s3 = new aws.S3()
+
+// TODO: Limit file size and file type on S3. 
+
+const upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: 'musicollapp',
+        acl: 'public-read-write',
+        key: function (req, file, cb) {
+            let randomFileName = Math.random().toString(36).substring(7);
+            cb(null, randomFileName + '.ogg'); 
+        }
+    })
 });
+
+  
+// Add audio to project 
+app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
+    let id = req.params.id;
+  //  console.log(id);
+    
+  console.log('done uploading')
+  console.log(req.file)
+  console.log(req.file.location);
+
+    // req.body gives us access to the JSON string on the FormData. 
+    let trackInfo = JSON.parse(req.body.body)
+
+    console.log(trackInfo);
+
+    let audio = {
+        file: req.file.location,
+        title: trackInfo.trackName,
+        description: trackInfo.trackDescription,
+        key: req.file.key,
+        date: new Date()
+    }
+
+    Project.findOneAndUpdate({_id: id}, {$push: {audio: audio}}, {new: true})
+    .then((updatedProject) => {
+        res.send(updatedProject);
+    }) 
+    
+
+
+});
+
+// Delete audio file from project DB & S3
+// On clientside, we have access to the audi object's _id's to delete from DB
+// Also have access to the object's key for deleting from S3
+
+app.patch('/api/projects/audio/:id', (req, res) => {
+    let id = req.params.id; 
+    let audioId = req.body.audioId;
+    let audioKey = req.body.audioKey;
+    console.log(audioKey)
+
+    // Delete from S3
+    // Then Delete from DB 
+
+    let deleteParams = {
+        Bucket: 'musicollapp',
+        Delete: {
+            Objects: [
+                {
+                    Key: audioKey
+                }
+            ]
+        }
+    }   
+
+
+    s3.deleteObjects(deleteParams, (error, response) => {
+        if(error) {
+            console.log(error);
+        } else {
+            console.log(response)
+            console.log('delete successful');
+            Project.findOneAndUpdate({_id: id}, {$pull: {audio: { _id: audioId}}}, {new: true}).then((updatedProject) => {
+                res.send(updatedProject);
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+    })
+
+    
+
+
+    // Get ID and key from clientside 
+    // Delete from S3 using key
+    // If successful, delete from DB using object id. 
+    // Send back res... which is hopefully updated project...?
+})
+
+// let tempParams = {
+//     Bucket: 'musicollapp',
+//     Delete: {
+//         Objects: [
+//             {
+//                 Key: "o7q970xgk949dfe0zfr.ogg"
+//             }
+//         ]
+//     }
+// }
+
+// s3.deleteObjects(tempParams, (err, res) => {
+//     if(err) {
+//         console.log(err);
+//     } else {
+//         console.log(res);
+//         console.log('successfully deleted');
+//     }
+// })
 
 
 // Seed Data
@@ -109,15 +234,16 @@ app.post('/api/projects/audio/:id', (req, res) => {
 const seeds = [
     {
         _id: new ObjectID(),
-        name: "Awesome Project",
+        name: "Sample Project",
         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
         notes: '\nThis song is written in the key of C#',
         audio: [
             {
-                file: "musicFile.wav",
-                title: 'Guitar Rhythm',
-                description: 'Backing rhythm without lead or melody.',
-                date: new Date()
+                file: "https://s3.us-east-2.amazonaws.com/musicollapp/sample.ogg",
+                title: 'Catchy Acoustic Guitar Rhythm',
+                description: 'A song I came up with while making this app...Key of A major.',
+                date: new Date(),
+                key: "sample.ogg"
             }
         ]
     },
@@ -131,7 +257,8 @@ const seeds = [
                 file: "musicFile.wav",
                 title: 'Guitar Rhythm',
                 description: 'Backing rhythm without lead or melody.',
-                date: new Date()
+                date: new Date(),
+                key: "sample.ogg"
             }
         ]
     },
@@ -145,7 +272,8 @@ const seeds = [
                 file: "musicFile.wav",
                 title: 'Guitar Rhythm',
                 description: 'Backing rhythm without lead or melody.',
-                date: new Date()
+                date: new Date(),
+                key: "sample.ogg"
             }
         ]
     }
