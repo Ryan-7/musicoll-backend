@@ -12,6 +12,8 @@ const {User} = require('./models/user');
 
 const _ = require('lodash');
 
+let {authenticate} = require('./middleware/authenticate');
+
 // AWS SDK
 const aws = require('aws-sdk');
 const awsconfig = require('../s3_config.json');
@@ -179,7 +181,7 @@ app.patch('/api/projects/audio/:id', (req, res) => {
 app.post('/api/users/register', (req, res) => {
    // let body = _.pick(req.body, ['email', 'password']) // Get only the properties we want. 
 
-    let user = new User({email: 'ryanb.wisc@gmail6.com', password: 'test'}); 
+    let user = new User({email: 'ryanb.wisc10@gmail.com', password: 'test'});
 
     // Save the user first so we can access it's _id for creation of token. 
 
@@ -187,7 +189,7 @@ app.post('/api/users/register', (req, res) => {
         return user.generateAuthToken(() => {
 
         }).then((token) => {
-            res.send(token); // Send the token after successful sign up, so use can auth right away. 
+            res.send(token); // Send the token after successful sign up, so user can auth in right away. 
         })
     }).catch((err) => {
         res.status(400).send(err);
@@ -195,6 +197,34 @@ app.post('/api/users/register', (req, res) => {
 
 })
 
+// Login 
+// Every time you login, you'll generate a new auth token which will be saved to the database and sent back as a header 
+
+app.post('/api/users/login', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+    let email = 'ryanb.wisc10@gmail.com';
+    let password = "test";
+
+    User.findByCredentials(email, password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            res.send(token);
+        })
+    }).catch((err) => {
+        res.status(400).send('Login failed');
+    });
+
+})
+
+// Logout 
+// Find user by id, delete token from array. 
+
+app.delete('/api/users/logout', authenticate, (req, res) => {
+    User.findByIdAndUpdate(req.user._id, {$pull: {tokens: {token: req.token }} }).then((user)=> {
+        res.status(200).send('Token deleted');
+    }).catch((err) => {
+        res.status(400).send();
+    })
+})
 
 
 // Seed Data
