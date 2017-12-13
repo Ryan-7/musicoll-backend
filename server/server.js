@@ -179,9 +179,9 @@ app.patch('/api/projects/audio/:id', (req, res) => {
 // Sign-up 
 
 app.post('/api/users/register', (req, res) => {
-   // let body = _.pick(req.body, ['email', 'password']) // Get only the properties we want. 
+    let body = _.pick(req.body, ['name', 'email', 'password']) // Get only the properties we want. 
 
-    let user = new User({email: 'ryanb.wisc10@gmail.com', password: 'test'});
+    let user = new User(body);
 
     // Save the user first so we can access it's _id for creation of token. 
 
@@ -189,10 +189,10 @@ app.post('/api/users/register', (req, res) => {
         return user.generateAuthToken(() => {
 
         }).then((token) => {
-            res.send(token); // Send the token after successful sign up, so user can auth in right away. 
+            res.header('musicoll-auth', token).send() // Send the token after successful sign up, so user can auth in right away. 
         })
     }).catch((err) => {
-        res.status(400).send(err);
+        res.status(400).send('Registration Failed');
     })
 
 })
@@ -202,10 +202,8 @@ app.post('/api/users/register', (req, res) => {
 
 app.post('/api/users/login', (req, res) => {
     let body = _.pick(req.body, ['email', 'password']);
-    let email = 'ryanb.wisc10@gmail.com';
-    let password = "test";
 
-    User.findByCredentials(email, password).then((user) => {
+    User.findByCredentials(body.email, body.password).then((user) => {
         return user.generateAuthToken().then((token) => {
             res.send(token);
         })
