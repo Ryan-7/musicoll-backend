@@ -5,9 +5,9 @@ const {User} = require('./../models/user');
 // Using that information, it will make it easy to find that user's specific database info. 
 
 let authenticate = (req, res, next) => {
-    let token = req.header('x-auth'); // get token from request header. 
+    let token = req.header('musicoll-auth'); // get token from request header. 
 
-
+    console.log(token)
     User.findByToken(token).then((user) => {
         if (!user) { 
 

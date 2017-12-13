@@ -205,7 +205,7 @@ app.post('/api/users/login', (req, res) => {
 
     User.findByCredentials(body.email, body.password).then((user) => {
         return user.generateAuthToken().then((token) => {
-            res.send(token);
+            res.header('musicoll-auth', token).send();
         })
     }).catch((err) => {
         res.status(400).send('Login failed');
