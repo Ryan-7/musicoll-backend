@@ -7,7 +7,7 @@ const theSalt = require('../../theSalt');
 // Define our Schema outside of the model so we can tack on our own methods 
 
 let UserSchema = new mongoose.Schema({
-    name: {
+    name: { 
         type: String,
         required: true,
         trim: true,
@@ -67,6 +67,7 @@ UserSchema.methods.generateAuthToken = function() {
     // Let access define what the purpose of this token is. 
     let access = 'auth';
  
+  //  let token = jwt.sign({_id: this._id, access: access}, theSalt.theSalt, {expiresIn: 60}).toString();
     let token = jwt.sign({_id: this._id, access: access}, theSalt.theSalt).toString();
 
     // 'this' refers to the user document we created 

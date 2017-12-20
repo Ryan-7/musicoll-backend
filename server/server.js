@@ -142,6 +142,14 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
 
 // Delete audio file from project DB & S3
 app.patch('/api/projects/audio/:id', (req, res) => {
+
+    // I need to search the database using the project / song id
+    // Only return the id with the user's _creator id on it. 
+    // This will prevent other users who are authenticated in
+    // From deleting a song that isnt theirs. 
+
+    // Maybe not, because how would they get the audio key... ?
+
     let id = req.params.id; 
     let audioId = req.body.audioId;
     let audioKey = req.body.audioKey;
