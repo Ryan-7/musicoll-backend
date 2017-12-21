@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const Project = mongoose.model('Project',  {
-
     name: {
         type: String,
         trim: true,

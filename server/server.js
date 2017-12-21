@@ -4,13 +4,21 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const multer  = require('multer');
 const multerS3 = require('multer-s3');
-const aws = require('aws-sdk');
-const awsconfig = require('../s3_config.json');
 
 const mongoose = require('./db/mongoose');
 const {ObjectID} = require('mongodb');
 const {Project} = require('./models/project');
+const {User} = require('./models/user');
+
 const _ = require('lodash');
+
+let {authenticate} = require('./middleware/authenticate');
+
+// AWS SDK
+const aws = require('aws-sdk');
+const awsconfig = require('../s3_config.json');
+aws.config.update(awsconfig);
+const s3 = new aws.S3()
 
 const port = process.env.port || 3000; // Stores all environment variables in key value pairs, we want port
 
@@ -35,7 +43,6 @@ app.use(function(req, res, next) {
 
 
 //Test
-
 app.get('/', (req, res) => {
     res.status(200).send("Hello");
 })
@@ -52,8 +59,8 @@ app.get('/api/projects/new', (req, res) => {
 })
 
 // Return the names and Id of each project so we can link on the client side.
-// No need to return all project data, since that would be a huge payload, 'pick' is a very useful method here.
-// This won't be necessary if I just serve links to the wav files to the front end.
+// No need to return all project data,'pick' is a very useful method here.
+
 app.get('/api/projects/list', (req, res) => {
     Project.find({}).then((results) => {
         newArray = [];
@@ -94,28 +101,7 @@ app.patch('/api/projects/:id', (req, res) => {
 })
 
 
-
-
-// Call the function so we can append a file extension. 
-// var storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//       cb(null, '../temp-saves')
-//     },
-//     filename: function (req, file, cb) {
-//       cb(null, Date.now() + '.ogg') //Appending .ogg for the audio.
-//     }
-//   });
-
-
-// const upload = multer({ storage: storage });
-
-
-aws.config.update(awsconfig);
-
-const s3 = new aws.S3()
-
 // TODO: Limit file size and file type on S3. 
-
 const upload = multer({
     storage: multerS3({
         s3: s3,
@@ -130,18 +116,13 @@ const upload = multer({
 
   
 // Add audio to project 
+// MulterS3 middleware
+
 app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
     let id = req.params.id;
-  //  console.log(id);
-    
-  console.log('done uploading')
-  console.log(req.file)
-  console.log(req.file.location);
 
     // req.body gives us access to the JSON string on the FormData. 
-    let trackInfo = JSON.parse(req.body.body)
-
-    console.log(trackInfo);
+    let trackInfo = JSON.parse(req.body.body);
 
     let audio = {
         file: req.file.location,
@@ -156,15 +137,19 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
         res.send(updatedProject);
     }) 
     
-
-
 });
 
-// Delete audio file from project DB & S3
-// On clientside, we have access to the audi object's _id's to delete from DB
-// Also have access to the object's key for deleting from S3
 
+// Delete audio file from project DB & S3
 app.patch('/api/projects/audio/:id', (req, res) => {
+
+    // I need to search the database using the project / song id
+    // Only return the id with the user's _creator id on it. 
+    // This will prevent other users who are authenticated in
+    // From deleting a song that isnt theirs. 
+
+    // Maybe not, because how would they get the audio key... ?
+
     let id = req.params.id; 
     let audioId = req.body.audioId;
     let audioKey = req.body.audioKey;
@@ -184,7 +169,6 @@ app.patch('/api/projects/audio/:id', (req, res) => {
         }
     }   
 
-
     s3.deleteObjects(deleteParams, (error, response) => {
         if(error) {
             console.log(error);
@@ -198,35 +182,55 @@ app.patch('/api/projects/audio/:id', (req, res) => {
             })
         }
     })
-
-    
-
-
-    // Get ID and key from clientside 
-    // Delete from S3 using key
-    // If successful, delete from DB using object id. 
-    // Send back res... which is hopefully updated project...?
 })
 
-// let tempParams = {
-//     Bucket: 'musicollapp',
-//     Delete: {
-//         Objects: [
-//             {
-//                 Key: "o7q970xgk949dfe0zfr.ogg"
-//             }
-//         ]
-//     }
-// }
+// Sign-up 
 
-// s3.deleteObjects(tempParams, (err, res) => {
-//     if(err) {
-//         console.log(err);
-//     } else {
-//         console.log(res);
-//         console.log('successfully deleted');
-//     }
-// })
+app.post('/api/users/register', (req, res) => {
+    let body = _.pick(req.body, ['name', 'email', 'password']) // Get only the properties we want. 
+
+    let user = new User(body);
+
+    // Save the user first so we can access it's _id for creation of token. 
+
+    user.save().then(() => {
+        return user.generateAuthToken(() => {
+
+        }).then((token) => {
+            res.header('musicoll-auth', token).send() // Send the token after successful sign up, so user can auth in right away. 
+        })
+    }).catch((err) => {
+        res.status(400).send('Registration Failed');
+    })
+
+})
+
+// Login 
+// Every time you login, you'll generate a new auth token which will be saved to the database and sent back as a header 
+
+app.post('/api/users/login', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+
+    User.findByCredentials(body.email, body.password).then((user) => {
+        return user.generateAuthToken().then((token) => {
+            res.header('musicoll-auth', token).send();
+        })
+    }).catch((err) => {
+        res.status(400).send('Login failed');
+    });
+
+})
+
+// Logout 
+// Find user by id, delete token from array. 
+
+app.delete('/api/users/logout', authenticate, (req, res) => {
+    User.findByIdAndUpdate(req.user._id, {$pull: {tokens: {token: req.token }} }).then((user)=> {
+        res.status(200).send('Token deleted');
+    }).catch((err) => {
+        res.status(400).send();
+    })
+})
 
 
 // Seed Data
