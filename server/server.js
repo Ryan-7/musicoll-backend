@@ -200,8 +200,28 @@ app.post('/api/users/register', (req, res) => {
 
     let user = new User(body);
 
-    // Save the user first so we can access it's _id for creation of token. 
+    const sampleProject = [
+        {
+            _id: new ObjectID(),
+            name: "Sample Project",
+            lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+            notes: '\nThis song is written in the key of C#',
+            audio: [
+                {
+                    file: "https://s3.us-east-2.amazonaws.com/musicollapp/sample.ogg",
+                    title: 'Catchy Acoustic Guitar Rhythm',
+                    description: 'A song I came up with while making this app...Key of A major.',
+                    date: new Date(),
+                    key: "sample.ogg"
+                }
+            ],
+            _creator: user._id  
+        }
+    ]
+   
+    Project.insertMany(sampleProject);
 
+    // Save the user first so we can access it's _id for creation of token. 
     user.save().then(() => {
         return user.generateAuthToken(() => {
 
@@ -241,63 +261,63 @@ app.delete('/api/users/logout', authenticate, (req, res) => {
     })
 })
 
-// Upon registration, add a sample data. 
 
-// Seed Data
 
-const seeds = [
-    {
-        _id: new ObjectID(),
-        name: "Sample Project",
-        lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
-        notes: '\nThis song is written in the key of C#',
-        audio: [
-            {
-                file: "https://s3.us-east-2.amazonaws.com/musicollapp/sample.ogg",
-                title: 'Catchy Acoustic Guitar Rhythm',
-                description: 'A song I came up with while making this app...Key of A major.',
-                date: new Date(),
-                key: "sample.ogg"
-            }
-        ]
-    },
-    {
-        _id: new ObjectID(),
-        name: "Project of the Century",
-        lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
-        notes: '\nThis song is written in the key of C#',
-        audio: [
-            {
-                file: "musicFile.wav",
-                title: 'Guitar Rhythm',
-                description: 'Backing rhythm without lead or melody.',
-                date: new Date(),
-                key: "sample.ogg"
-            }
-        ]
-    },
-    {
-        _id: new ObjectID(),
-        name: "Great Idea for Us",
-        lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
-        notes: '\nThis song is written in the key of C#',
-        audio: [
-            {
-                file: "musicFile.wav",
-                title: 'Guitar Rhythm',
-                description: 'Backing rhythm without lead or melody.',
-                date: new Date(),
-                key: "sample.ogg"
-            }
-        ]
-    }
-]
+// Seed Data used for Dev 
 
-// Seed the DB with mock data.
+// const seeds = [
+//     {
+//         _id: new ObjectID(),
+//         name: "Sample Project",
+//         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+//         notes: '\nThis song is written in the key of C#',
+//         audio: [
+//             {
+//                 file: "https://s3.us-east-2.amazonaws.com/musicollapp/sample.ogg",
+//                 title: 'Catchy Acoustic Guitar Rhythm',
+//                 description: 'A song I came up with while making this app...Key of A major.',
+//                 date: new Date(),
+//                 key: "sample.ogg"
+//             }
+//         ]
+//     },
+//     {
+//         _id: new ObjectID(),
+//         name: "Project of the Century",
+//         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+//         notes: '\nThis song is written in the key of C#',
+//         audio: [
+//             {
+//                 file: "musicFile.wav",
+//                 title: 'Guitar Rhythm',
+//                 description: 'Backing rhythm without lead or melody.',
+//                 date: new Date(),
+//                 key: "sample.ogg"
+//             }
+//         ]
+//     },
+//     {
+//         _id: new ObjectID(),
+//         name: "Great Idea for Us",
+//         lyrics: '\nLorem ipsum dolor sit ame\nconsectetur adipiscing elit\nsed do eiusmod tempor incididunt\ndtlabore et dolore magna aliqua\nUt enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut',
+//         notes: '\nThis song is written in the key of C#',
+//         audio: [
+//             {
+//                 file: "musicFile.wav",
+//                 title: 'Guitar Rhythm',
+//                 description: 'Backing rhythm without lead or melody.',
+//                 date: new Date(),
+//                 key: "sample.ogg"
+//             }
+//         ]
+//     }
+// ]
 
-Project.remove({}).then(() => {
-    return Project.insertMany(seeds);
-}).then(() => {
-});
+// // Seed the DB with mock data.
+
+// Project.remove({}).then(() => {
+//     return Project.insertMany(seeds);
+// }).then(() => {
+// });
 
 
