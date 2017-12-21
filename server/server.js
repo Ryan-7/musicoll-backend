@@ -86,13 +86,29 @@ app.get('/api/projects/:id', authenticate, (req, res) => {
     
 
 // Delete Project by Id
-app.delete('/api/projects/:id', authenticate, (req, res) => {
+app.patch('/api/projects/:id', authenticate, (req, res) => {
     let id = req.params.id;
+
+    let audioKeysArray = [];
+    _.forEach(req.body, (item) => {
+        audioKeysArray.push(
+            _.pick(item, ['key'])
+        )
+    })
+    for (var i = 0; i < audioKeysArray.length; i++) {
+        console.log(audioKeysArray[i]['key']);
+        // delete from S3 in here. 
+    }
+
+
     Project.findOneAndRemove({_id: id, _creator: req.user._id}).then((result) => {
         res.send(result);
     })
     // Need to find all audio file keys associated with this project id and make an array 
     // Loop through and delete by calling S3 function 
+
+
+
 })
 
 // Edit Items 
