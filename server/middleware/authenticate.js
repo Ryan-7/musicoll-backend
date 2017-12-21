@@ -6,7 +6,7 @@ const {User} = require('./../models/user');
 
 let authenticate = (req, res, next) => {
     let token = req.header('musicoll-auth'); // get token from request header. 
-
+    console.log("Token:")
     console.log(token)
     User.findByToken(token).then((user) => {
         if (!user) { 
@@ -19,7 +19,7 @@ let authenticate = (req, res, next) => {
         next() // since this is middleware, we need to call next to keep the code moving
 
     }).catch((err) => {
-        res.status(401).send(); // Can put a custom error response here 
+        res.status(401).send('Unauthorized'); // Can put a custom error response here 
                                 // Don't want to call next because why would we want the get request to run after an error?
     })
     

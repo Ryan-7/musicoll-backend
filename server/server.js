@@ -31,11 +31,11 @@ app.listen(port, () => {
 });
 
 // CORS
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
+// app.use(function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "*");
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//     next();
+// });
 
 
 // Middleware for parsing incoming body for JSON. 
@@ -51,8 +51,9 @@ app.get('/', (req, res) => {
 
 // New Project 
 // Creates empty Project object with an Id we can use to route to on the client side and modify from the app.
-app.get('/api/projects/new', (req, res) => {
+app.get('/api/projects/new', authenticate, (req, res) => {
     let newProject = new Project({
+        _creator: req.user._id
     });
     newProject.save();  
     res.status(200).send(newProject._id);
@@ -61,8 +62,8 @@ app.get('/api/projects/new', (req, res) => {
 // Return the names and Id of each project so we can link on the client side.
 // No need to return all project data,'pick' is a very useful method here.
 
-app.get('/api/projects/list', (req, res) => {
-    Project.find({}).then((results) => {
+app.get('/api/projects/list', authenticate, (req, res) => {
+    Project.find({_creator: req.user._id}).then((results) => {
         newArray = [];
         _.forEach(results, (item) => {
             newArray.push(
@@ -70,31 +71,35 @@ app.get('/api/projects/list', (req, res) => {
             )
         })
         res.status(200).send(newArray);
+    }).catch((err) => {
+        console.log(err)
     })
 })
 
 // Get project by Id
-app.get('/api/projects/:id', (req, res) => {
+app.get('/api/projects/:id', authenticate, (req, res) => {
     let id = req.params.id;
-    Project.findOne({_id: id}).then((result) => {
+    Project.findOne({_id: id, _creator: req.user._id}).then((result) => {
         res.status(200).send(result);
     })
 })
     
 
 // Delete Project by Id
-app.delete('/api/projects/:id', (req, res) => {
+app.delete('/api/projects/:id', authenticate, (req, res) => {
     let id = req.params.id;
-    Project.findOneAndRemove({_id: id}).then((result) => {
+    Project.findOneAndRemove({_id: id, _creator: req.user._id}).then((result) => {
         res.send(result);
     })
+    // Need to find all audio file keys associated with this project id and make an array 
+    // Loop through and delete by calling S3 function 
 })
 
 // Edit Items 
-app.patch('/api/projects/:id', (req, res) => {
+app.patch('/api/projects/:id', authenticate, (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['name', 'lyrics', 'notes']);
-    Project.findOneAndUpdate({ _id: id}, {$set: {name: body.name, lyrics: body.lyrics, notes: body.notes}}, {new: true})
+    Project.findOneAndUpdate({ _id: id, _creator: req.user._id}, {$set: {name: body.name, lyrics: body.lyrics, notes: body.notes}}, {new: true})
     .then((doc) => {
         res.status(200).send(doc);
     })
@@ -118,7 +123,7 @@ const upload = multer({
 // Add audio to project 
 // MulterS3 middleware
 
-app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
+app.post('/api/projects/audio/:id', authenticate, upload.single('audio'), (req, res) => {
     let id = req.params.id;
 
     // req.body gives us access to the JSON string on the FormData. 
@@ -132,7 +137,7 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
         date: new Date()
     }
 
-    Project.findOneAndUpdate({_id: id}, {$push: {audio: audio}}, {new: true})
+    Project.findOneAndUpdate({_id: id, _creator: req.user._id}, {$push: {audio: audio}}, {new: true})
     .then((updatedProject) => {
         res.send(updatedProject);
     }) 
@@ -141,22 +146,12 @@ app.post('/api/projects/audio/:id', upload.single('audio'), (req, res) => {
 
 
 // Delete audio file from project DB & S3
-app.patch('/api/projects/audio/:id', (req, res) => {
+app.patch('/api/projects/audio/:id', authenticate, (req, res) => {
 
-    // I need to search the database using the project / song id
-    // Only return the id with the user's _creator id on it. 
-    // This will prevent other users who are authenticated in
-    // From deleting a song that isnt theirs. 
-
-    // Maybe not, because how would they get the audio key... ?
 
     let id = req.params.id; 
     let audioId = req.body.audioId;
     let audioKey = req.body.audioKey;
-    console.log(audioKey)
-
-    // Delete from S3
-    // Then Delete from DB 
 
     let deleteParams = {
         Bucket: 'musicollapp',
@@ -167,21 +162,35 @@ app.patch('/api/projects/audio/:id', (req, res) => {
                 }
             ]
         }
-    }   
+    }
 
-    s3.deleteObjects(deleteParams, (error, response) => {
-        if(error) {
-            console.log(error);
-        } else {
-            console.log(response)
-            console.log('delete successful');
-            Project.findOneAndUpdate({_id: id}, {$pull: {audio: { _id: audioId}}}, {new: true}).then((updatedProject) => {
-                res.send(updatedProject);
-            }).catch((err) => {
-                console.log(err);
-            })
-        }
-    })
+    // Use if, else to prevent users from deleting the sample.ogg file from S3 when they delete the sample project.
+    
+    if (audioKey === 'sample.ogg') {
+        Project.findOneAndUpdate({_id: id}, {$pull: {audio: { _id: audioId}}}, {new: true}).then((updatedProject) => {
+            res.send(updatedProject);
+        }).catch((err) => {
+            console.log(err);
+        })
+    }
+
+    // Else, delete from S3 and Database. 
+
+    else {
+        s3.deleteObjects(deleteParams, (error, response) => {
+            if(error) {
+                console.log(error);
+            } else {
+                console.log(response)
+                console.log('delete successful');
+                Project.findOneAndUpdate({_id: id}, {$pull: {audio: { _id: audioId}}}, {new: true}).then((updatedProject) => {
+                    res.send(updatedProject);
+                }).catch((err) => {
+                    console.log(err);
+                })
+            }
+        })
+    }
 })
 
 // Sign-up 
@@ -232,6 +241,7 @@ app.delete('/api/users/logout', authenticate, (req, res) => {
     })
 })
 
+// Upon registration, add a sample data. 
 
 // Seed Data
 
