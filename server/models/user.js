@@ -8,7 +8,7 @@ const theSalt = require('../../theSalt');
 
 let UserSchema = new mongoose.Schema({
     name: { 
-        type: String,
+        type: String, 
         required: true,
         trim: true,
         minLength: 1

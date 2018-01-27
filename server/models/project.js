@@ -22,7 +22,8 @@ const Project = mongoose.model('Project',  {
         key: String
     }],
     _creator: {
-
+        type: mongoose.SchemaTypes.ObjectId, // Will use user's id for this
+        rquire: true
     }
 });
 
