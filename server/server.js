@@ -87,7 +87,10 @@ app.get('/api/projects/:id', authenticate, (req, res) => {
 
 // Delete Project by Id
 app.patch('/api/projects/:id', authenticate, (req, res) => {
+    console.log("calling dlete project function")
     let id = req.params.id;
+
+    // Before deleting project from DB, need to delete associated audio files in S3: 
 
     let audioKeysArray = [];
     _.forEach(req.body, (item) => {
@@ -95,24 +98,38 @@ app.patch('/api/projects/:id', authenticate, (req, res) => {
             _.pick(item, ['key'])
         )
     })
-    for (var i = 0; i < audioKeysArray.length; i++) {
-        console.log(audioKeysArray[i]['key']);
-        // delete from S3 in here. 
-    }
+
+    audioKeysArray = _.filter(audioKeysArray, (item) => {
+        return item.key != 'sample.ogg'
+    })
+
+    console.log(audioKeysArray);
+
+    // Need to capitalize 'key' to 'Key' to match S3 parameter needs:
+    let newAudioKeysArray = _.map(audioKeysArray, (item) => {
+        return {Key: item.key};
+    })
+
+
+    s3.deleteObjects({Bucket: 'musicollapp', Delete: {Objects: newAudioKeysArray}}, (error, response) => {
+        if(error) {
+            console.log(error);
+        } else {
+            console.log(response)
+            console.log('delete successful');
+
+        }
+    })
 
 
     Project.findOneAndRemove({_id: id, _creator: req.user._id}).then((result) => {
         res.send(result);
     })
-    // Need to find all audio file keys associated with this project id and make an array 
-    // Loop through and delete by calling S3 function 
-
-
 
 })
 
 // Edit Items 
-app.patch('/api/projects/:id', authenticate, (req, res) => {
+app.patch('/api/update/projects/:id', authenticate, (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, ['name', 'lyrics', 'notes']);
     Project.findOneAndUpdate({ _id: id, _creator: req.user._id}, {$set: {name: body.name, lyrics: body.lyrics, notes: body.notes}}, {new: true})
@@ -215,6 +232,8 @@ app.post('/api/users/register', (req, res) => {
     let body = _.pick(req.body, ['name', 'email', 'password']) // Get only the properties we want. 
 
     let user = new User(body);
+
+    // Setup user with sample project 
 
     const sampleProject = [
         {
