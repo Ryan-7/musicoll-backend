@@ -229,8 +229,7 @@ app.patch('/api/projects/audio/:id', authenticate, (req, res) => {
 // Sign-up 
 
 app.post('/api/users/register', (req, res) => {
-    let body = _.pick(req.body, ['name', 'email', 'password']) // Get only the properties we want. 
-
+    let body = _.pick(req.body, ['email', 'password']) // Get only the properties we want. 
     let user = new User(body);
 
     // Setup user with sample project 
@@ -264,7 +263,9 @@ app.post('/api/users/register', (req, res) => {
             res.header('musicoll-auth', token).send() // Send the token after successful sign up, so user can auth in right away. 
         })
     }).catch((err) => {
-        res.status(400).send('Registration Failed');
+        console.log(err)
+        let error = err.message;
+        res.status(400).send(error);
     })
 
 })
@@ -280,7 +281,8 @@ app.post('/api/users/login', (req, res) => {
             res.header('musicoll-auth', token).send();
         })
     }).catch((err) => {
-        res.status(400).send('Login failed');
+        let error = err.message; 
+        res.status(400).send(error);
     });
 
 })
