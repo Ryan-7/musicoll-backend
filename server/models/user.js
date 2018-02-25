@@ -7,12 +7,6 @@ const theSalt = require('../../theSalt');
 // Define our Schema outside of the model so we can tack on our own methods 
 
 let UserSchema = new mongoose.Schema({
-    name: { 
-        type: String, 
-        required: true,
-        trim: true,
-        minLength: 1
-    },
     email: {
         type: String,
         required: true,
